@@ -73,7 +73,7 @@ export const BoxShape = ({ length, width, height, unwrap, opacity, showFaces, sh
                     <FaceWithBorders w={w} h={h} color={faceColors.back} position={[0, h / 2, 0]} rotation={[0, Math.PI, 0]} />
                     <group position={[0, h, 0]}>
                         <group rotation={[-u * Math.PI / 2, 0, 0]}>
-                            <FaceWithBorders w={w} h={d} color={faceColors.top} position={[0, d / 2, 0]} rotation={[-Math.PI / 2, 0, 0]} />
+                            <FaceWithBorders w={w} h={d} color={faceColors.top} position={[0, 0, d / 2]} rotation={[-Math.PI / 2, 0, 0]} />
                         </group>
                     </group>
                 </group>
