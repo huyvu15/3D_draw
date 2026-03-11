@@ -8,7 +8,7 @@ import { BoxShape } from './shapes/BoxShape';
 import { PyramidShape } from './shapes/PyramidShape';
 import { CylinderShape } from './shapes/CylinderShape';
 import { SphereShape } from './shapes/SphereShape';
-import { TriangleShape, QuadrilateralShape, CircleShape, ParallelogramShape, RhombusShape, TrapezoidShape, PolygonShape } from './shapes/FlatShapes';
+import { TriangleShape, QuadrilateralShape, CircleShape, ParallelogramShape, RhombusShape, TrapezoidShape, PolygonShape, SectorShape } from './shapes/FlatShapes';
 
 export default function App() {
     const [activeShape, setActiveShape] = useState('box');
@@ -16,6 +16,7 @@ export default function App() {
     const [length, setLength] = useState(4);
     const [width, setWidth] = useState(4);
     const [height, setHeight] = useState(4);
+    const [angle, setAngle] = useState(60);
     const [unwrap, setUnwrap] = useState(0);
 
     const [showVertices, setShowVertices] = useState(true);
@@ -30,13 +31,13 @@ export default function App() {
         cylinder: 'HÌNH TRỤ', sphere: 'HÌNH CẦU', triangle: 'HÌNH TAM GIÁC',
         quadrilateral: 'HÌNH TỨ GIÁC', circle: 'HÌNH TRÒN',
         parallelogram: 'HÌNH BÌNH HÀNH', rhombus: 'HÌNH THOI', trapezoid: 'HÌNH THANG',
-        pentagon: 'NGŨ GIÁC', hexagon: 'LỤC GIÁC'
+        pentagon: 'NGŨ GIÁC', hexagon: 'LỤC GIÁC', sector: 'HÌNH QUẠT'
     };
 
 
     // Calculate volume and area
     let area = 0, volume = 0;
-    const r = length / 2;
+    const r = length;
     if (activeShape === 'box' || activeShape === 'cube') {
         const d = activeShape === 'cube' ? length : width;
         const h = activeShape === 'cube' ? length : height;
@@ -65,7 +66,52 @@ export default function App() {
         area = 5 * 0.5 * Math.pow(r, 2) * Math.sin((2 * Math.PI) / 5);
     } else if (activeShape === 'hexagon') {
         area = 6 * 0.5 * Math.pow(r, 2) * Math.sin((2 * Math.PI) / 6);
+    } else if (activeShape === 'sector') {
+        area = (angle / 360) * Math.PI * r * r;
     }
+
+    const { s_len, s_wid, s_hei, s_ang } = useMemo(() => {
+        let l = { show: true, label: 'DÀI / CẠNH', val: length, set: setLength, max: 10, step: 0.5 };
+        let w = { show: true, label: 'CHIỀU RỘNG', val: width, set: setWidth, max: 10, step: 0.5 };
+        let h = { show: true, label: 'CHIỀU CAO', val: height, set: setHeight, max: 10, step: 0.5 };
+        let a = { show: false, label: 'GÓC (°)', val: angle, set: setAngle, max: 170, step: 1 };
+
+        switch (activeShape) {
+            case 'cube':
+                l.label = 'CẠNH'; w.show = false; h.show = false;
+                break;
+            case 'pyramid':
+                l.label = 'CẠNH ĐÁY X'; w.label = 'CẠNH ĐÁY Z'; h.label = 'CHIỀU CAO';
+                break;
+            case 'cylinder':
+                l.label = 'BÁN KÍNH ĐÁY'; w.show = false; h.label = 'CHIỀU CAO'; l.max = 5;
+                break;
+            case 'sphere':
+            case 'circle':
+            case 'pentagon':
+            case 'hexagon':
+                l.label = 'BÁN KÍNH'; w.show = false; h.show = false; l.max = 5;
+                break;
+            case 'sector':
+                l.label = 'BÁN KÍNH'; w.show = false; h.show = false; l.max = 5;
+                a.show = true; a.max = 360;
+                break;
+            case 'triangle':
+            case 'parallelogram':
+                l.label = 'CẠNH ĐÁY'; w.show = false; h.label = 'CHIỀU CAO';
+                if (activeShape === 'parallelogram') a.show = true;
+                break;
+            case 'quadrilateral':
+            case 'trapezoid':
+                l.label = 'CẠNH ĐÁY LỚN'; w.show = false; h.label = 'CHIỀU CAO';
+                break;
+            case 'rhombus':
+                l.label = 'CẠNH BÊN'; w.show = false; h.show = false;
+                a.show = true;
+                break;
+        }
+        return { s_len: l, s_wid: w, s_hei: h, s_ang: a };
+    }, [activeShape, length, width, height, angle]);
 
     return (
         <div className="flex h-screen bg-[#0b1021] text-gray-200 font-sans">
@@ -82,7 +128,7 @@ export default function App() {
                 </div>
 
                 {/* Shape Selector Grid */}
-                <div className="grid grid-cols-4 gap-2 mb-6 h-40 overflow-y-auto pr-1 select-none">
+                <div className="grid grid-cols-4 gap-2 mb-6 select-none">
                     {[
                         { id: 'cube', label: 'LẬP PHƯƠNG', icon: <Hexagon size={20} className="mb-1 opacity-70" /> },
                         { id: 'box', label: 'HỘP', icon: <Box size={20} className="mb-1 opacity-70" /> },
@@ -97,6 +143,7 @@ export default function App() {
                         { id: 'pentagon', label: 'NGŨ GIÁC', icon: <Hexagon size={20} className="mb-1 opacity-70" /> },
                         { id: 'hexagon', label: 'LỤC GIÁC', icon: <Hexagon size={20} className="mb-1 opacity-70" /> },
                         { id: 'circle', label: 'TRÒN', icon: <Circle size={20} className="mb-1 opacity-70" /> },
+                        { id: 'sector', label: 'QUẠT', icon: <Circle size={20} className="mb-1 opacity-70" strokeDasharray="4 2" /> },
                     ].map((s) => (
                         <button
                             key={s.id}
@@ -154,30 +201,46 @@ export default function App() {
                         </div>
                         <input type="range" min="0" max="100" value={opacity} onChange={(e) => setOpacity(parseInt(e.target.value))} className="w-full accent-blue-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer" />
                     </div>
-                    <div>
-                        <div className="flex justify-between text-[11px] mb-1 text-gray-400">
-                            <label>DÀI / CẠNH: {length}</label>
+                    {s_len.show && (
+                        <div>
+                            <div className="flex justify-between text-[11px] mb-1 text-gray-400">
+                                <label>{s_len.label}: {s_len.val}</label>
+                            </div>
+                            <input type="range" min="1" max={s_len.max} step={s_len.step} value={s_len.val} onChange={(e) => s_len.set(parseFloat(e.target.value))} className="w-full accent-blue-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer" />
                         </div>
-                        <input type="range" min="1" max="10" step="0.5" value={length} onChange={(e) => setLength(parseFloat(e.target.value))} className="w-full accent-blue-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer" />
-                    </div>
-                    <div>
-                        <div className="flex justify-between text-[11px] mb-1 text-gray-400">
-                            <label>CHIỀU RỘNG: {width}</label>
+                    )}
+                    {s_wid.show && (
+                        <div>
+                            <div className="flex justify-between text-[11px] mb-1 text-gray-400">
+                                <label>{s_wid.label}: {s_wid.val}</label>
+                            </div>
+                            <input type="range" min="1" max={s_wid.max} step={s_wid.step} value={s_wid.val} onChange={(e) => s_wid.set(parseFloat(e.target.value))} className="w-full accent-blue-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer" />
                         </div>
-                        <input type="range" min="1" max="10" step="0.5" value={width} onChange={(e) => setWidth(parseFloat(e.target.value))} className="w-full accent-blue-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer" />
-                    </div>
-                    <div>
-                        <div className="flex justify-between text-[11px] mb-1 text-gray-400">
-                            <label>CHIỀU CAO: {height}</label>
+                    )}
+                    {s_hei.show && (
+                        <div>
+                            <div className="flex justify-between text-[11px] mb-1 text-gray-400">
+                                <label>{s_hei.label}: {s_hei.val}</label>
+                            </div>
+                            <input type="range" min="1" max={s_hei.max} step={s_hei.step} value={s_hei.val} onChange={(e) => s_hei.set(parseFloat(e.target.value))} className="w-full accent-blue-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer" />
                         </div>
-                        <input type="range" min="1" max="10" step="0.5" value={height} onChange={(e) => setHeight(parseFloat(e.target.value))} className="w-full accent-blue-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer" />
-                    </div>
-                    <div>
-                        <div className="flex justify-between text-[11px] mb-1 text-yellow-500 font-medium">
-                            <label>MỞ KHỐI / TRẢI HÌNH: {unwrap}%</label>
+                    )}
+                    {s_ang.show && (
+                        <div>
+                            <div className="flex justify-between text-[11px] mb-1 text-gray-400">
+                                <label>{s_ang.label}: {s_ang.val}</label>
+                            </div>
+                            <input type="range" min="10" max={s_ang.max} step={s_ang.step} value={s_ang.val} onChange={(e) => s_ang.set(parseFloat(e.target.value))} className="w-full accent-blue-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer" />
                         </div>
-                        <input type="range" min="0" max="100" value={unwrap} onChange={(e) => setUnwrap(parseInt(e.target.value))} className="w-full accent-yellow-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer" />
-                    </div>
+                    )}
+                    {(activeShape === 'box' || activeShape === 'cube' || activeShape === 'pyramid' || activeShape === 'cylinder' || activeShape === 'sphere') && (
+                        <div>
+                            <div className="flex justify-between text-[11px] mb-1 text-yellow-500 font-medium">
+                                <label>MỞ KHỐI / TRẢI HÌNH: {unwrap}%</label>
+                            </div>
+                            <input type="range" min="0" max="100" value={unwrap} onChange={(e) => setUnwrap(parseInt(e.target.value))} className="w-full accent-yellow-500 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer" />
+                        </div>
+                    )}
                 </div>
 
                 {/* Calculation Box */}
@@ -230,16 +293,17 @@ export default function App() {
                     {activeShape === 'box' && <BoxShape length={length} width={width} height={height} unwrap={unwrap} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
                     {activeShape === 'cube' && <BoxShape length={length} width={length} height={length} unwrap={unwrap} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
                     {activeShape === 'pyramid' && <PyramidShape length={length} width={width} height={height} unwrap={unwrap} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
-                    {activeShape === 'cylinder' && <CylinderShape length={length} width={width} height={height} unwrap={unwrap} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
-                    {activeShape === 'sphere' && <SphereShape length={length} width={width} height={height} unwrap={unwrap} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
-                    {activeShape === 'triangle' && <TriangleShape length={length} width={width} height={height} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
-                    {activeShape === 'quadrilateral' && <QuadrilateralShape length={length} width={width} height={height} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
-                    {activeShape === 'parallelogram' && <ParallelogramShape length={length} width={width} height={height} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
-                    {activeShape === 'rhombus' && <RhombusShape length={length} width={width} height={height} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
-                    {activeShape === 'trapezoid' && <TrapezoidShape length={length} width={width} height={height} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
-                    {activeShape === 'pentagon' && <PolygonShape sides={5} length={length} color="#a78bfa" opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
-                    {activeShape === 'hexagon' && <PolygonShape sides={6} length={length} color="#34d399" opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
-                    {activeShape === 'circle' && <CircleShape length={length} width={width} height={height} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
+                    {activeShape === 'cylinder' && <CylinderShape radius={length} height={height} unwrap={unwrap} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
+                    {activeShape === 'sphere' && <SphereShape radius={length} unwrap={unwrap} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
+                    {activeShape === 'triangle' && <TriangleShape length={length} height={height} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
+                    {activeShape === 'quadrilateral' && <QuadrilateralShape length={length} height={height} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
+                    {activeShape === 'parallelogram' && <ParallelogramShape length={length} height={height} angle={angle} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
+                    {activeShape === 'rhombus' && <RhombusShape length={length} angle={angle} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
+                    {activeShape === 'trapezoid' && <TrapezoidShape length={length} height={height} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
+                    {activeShape === 'pentagon' && <PolygonShape sides={5} radius={length} color="#a78bfa" opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
+                    {activeShape === 'hexagon' && <PolygonShape sides={6} radius={length} color="#34d399" opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
+                    {activeShape === 'circle' && <CircleShape radius={length} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
+                    {activeShape === 'sector' && <SectorShape radius={length} angle={angle} opacity={opacity} showVertices={showVertices} showEdges={showEdges} showFaces={showFaces} />}
 
                     <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2 + 0.1} />
                 </Canvas>

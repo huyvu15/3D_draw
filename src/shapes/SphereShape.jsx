@@ -2,8 +2,8 @@ import React from 'react';
 import { Sphere, Edges } from '@react-three/drei';
 import * as THREE from 'three';
 
-export const SphereShape = ({ length, unwrap, opacity, showFaces, showEdges }) => {
-    const r = length / 2;
+export const SphereShape = ({ radius, unwrap, opacity, showFaces, showEdges }) => {
+    const r = radius;
     const u = unwrap / 100;
 
     const matProps = {

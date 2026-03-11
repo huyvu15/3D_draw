@@ -77,23 +77,37 @@ export const PyramidShape = ({ length, width, height, unwrap, opacity, showFaces
             <BasePlane w={length} d={width} />
 
             {/* Front Face (positive Z) */}
-            <group position={[0, 0, width / 2]} rotation={[-(Math.PI / 2 - foldAngleFront), 0, 0]}>
-                <TriangleFace base={length} slantHeight={slantHeightFront} color="#1e3a8a" />
+            <group position={[0, 0, width / 2]}>
+                <group rotation={[-(Math.PI / 2 - foldAngleFront), 0, 0]}>
+                    <TriangleFace base={length} slantHeight={slantHeightFront} color="#1e3a8a" />
+                </group>
             </group>
 
             {/* Back Face (negative Z) */}
-            <group position={[0, 0, -width / 2]} rotation={[(Math.PI / 2 - foldAngleFront), Math.PI, 0]}>
-                <TriangleFace base={length} slantHeight={slantHeightFront} color="#1e3a8a" />
+            <group position={[0, 0, -width / 2]}>
+                <group rotation={[0, Math.PI, 0]}>
+                    <group rotation={[-(Math.PI / 2 - foldAngleFront), 0, 0]}>
+                        <TriangleFace base={length} slantHeight={slantHeightFront} color="#1e3a8a" />
+                    </group>
+                </group>
             </group>
 
             {/* Right Face (positive X) */}
-            <group position={[length / 2, 0, 0]} rotation={[0, 0, (Math.PI / 2 - foldAngleSide)]} rotation-y={Math.PI / 2}>
-                <TriangleFace base={width} slantHeight={slantHeightSide} color="#8b5cf6" />
+            <group position={[length / 2, 0, 0]}>
+                <group rotation={[0, Math.PI / 2, 0]}>
+                    <group rotation={[-(Math.PI / 2 - foldAngleSide), 0, 0]}>
+                        <TriangleFace base={width} slantHeight={slantHeightSide} color="#8b5cf6" />
+                    </group>
+                </group>
             </group>
 
             {/* Left Face (negative X) */}
-            <group position={[-length / 2, 0, 0]} rotation={[0, 0, -(Math.PI / 2 - foldAngleSide)]} rotation-y={-Math.PI / 2}>
-                <TriangleFace base={width} slantHeight={slantHeightSide} color="#8b5cf6" />
+            <group position={[-length / 2, 0, 0]}>
+                <group rotation={[0, -Math.PI / 2, 0]}>
+                    <group rotation={[-(Math.PI / 2 - foldAngleSide), 0, 0]}>
+                        <TriangleFace base={width} slantHeight={slantHeightSide} color="#8b5cf6" />
+                    </group>
+                </group>
             </group>
 
             {/* Apex Vertex */}

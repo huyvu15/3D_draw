@@ -40,24 +40,26 @@ export const TriangleShape = ({ length, height, opacity, showFaces, showEdges, s
     );
 };
 
-export const ParallelogramShape = ({ length, height, opacity, showFaces, showEdges, showVertices }) => {
-    const offset = height / 2; // Fixed slant
+export const ParallelogramShape = ({ length, height, angle, opacity, showFaces, showEdges, showVertices }) => {
+    const A = Math.max(10, Math.min(170, Number(angle) || 60));
+    const rad = (A * Math.PI) / 180;
+    const offset = height / Math.tan(rad);
     const geom = new THREE.BufferGeometry();
     const vertices = new Float32Array([
-        -length / 2 - offset, -height / 2, 0,
-        length / 2 - offset, -height / 2, 0,
-        -length / 2 + offset, height / 2, 0,
-        length / 2 - offset, -height / 2, 0,
-        length / 2 + offset, height / 2, 0,
-        -length / 2 + offset, height / 2, 0,
+        -length / 2 - offset / 2, -height / 2, 0,
+        length / 2 - offset / 2, -height / 2, 0,
+        -length / 2 + offset / 2, height / 2, 0,
+        length / 2 - offset / 2, -height / 2, 0,
+        length / 2 + offset / 2, height / 2, 0,
+        -length / 2 + offset / 2, height / 2, 0,
     ]);
     geom.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
     geom.computeVertexNormals();
     const P = [
-        [-length / 2 - offset, -height / 2, 0],
-        [length / 2 - offset, -height / 2, 0],
-        [length / 2 + offset, height / 2, 0],
-        [-length / 2 + offset, height / 2, 0]
+        [-length / 2 - offset / 2, -height / 2, 0],
+        [length / 2 - offset / 2, -height / 2, 0],
+        [length / 2 + offset / 2, height / 2, 0],
+        [-length / 2 + offset / 2, height / 2, 0]
     ];
 
     return (
@@ -77,24 +79,29 @@ export const ParallelogramShape = ({ length, height, opacity, showFaces, showEdg
     );
 };
 
-export const RhombusShape = ({ length, height, opacity, showFaces, showEdges, showVertices }) => {
+export const RhombusShape = ({ length, angle, opacity, showFaces, showEdges, showVertices }) => {
+    const A = Math.max(10, Math.min(170, Number(angle) || 60));
+    const rad = (A * Math.PI) / 180;
+    // For a rhombus, all sides are equal to 'length'. 
+    const h = length * Math.sin(rad);
+    const offset = length * Math.cos(rad);
     const geom = new THREE.BufferGeometry();
     const vertices = new Float32Array([
-        -length / 2, 0, 0,
-        0, -height / 2, 0,
-        0, height / 2, 0,
-        0, -height / 2, 0,
-        length / 2, 0, 0,
-        0, height / 2, 0,
+        -length / 2 - offset / 2, -h / 2, 0,
+        length / 2 - offset / 2, -h / 2, 0,
+        -length / 2 + offset / 2, h / 2, 0,
+        length / 2 - offset / 2, -h / 2, 0,
+        length / 2 + offset / 2, h / 2, 0,
+        -length / 2 + offset / 2, h / 2, 0,
     ]);
     geom.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
     geom.computeVertexNormals();
 
     const P = [
-        [0, height / 2, 0],
-        [length / 2, 0, 0],
-        [0, -height / 2, 0],
-        [-length / 2, 0, 0],
+        [-length / 2 - offset / 2, -h / 2, 0],
+        [length / 2 - offset / 2, -h / 2, 0],
+        [length / 2 + offset / 2, h / 2, 0],
+        [-length / 2 + offset / 2, h / 2, 0]
     ];
 
     return (
@@ -151,8 +158,8 @@ export const TrapezoidShape = ({ length, height, opacity, showFaces, showEdges, 
     );
 };
 
-export const PolygonShape = ({ sides, length, color, opacity, showFaces, showEdges, showVertices }) => {
-    const r = length / 2;
+export const PolygonShape = ({ sides, radius, color, opacity, showFaces, showEdges, showVertices }) => {
+    const r = radius;
     return (
         <group>
             <mesh>
@@ -168,7 +175,7 @@ export const PolygonShape = ({ sides, length, color, opacity, showFaces, showEdg
             {showVertices && (
                 <group>
                     {Array.from({ length: sides }).map((_, i) => {
-                        const theta = (i / sides) * Math.PI * 2 + (sides % 2 === 0 ? Math.PI / sides : 0);
+                        const theta = (i / sides) * Math.PI * 2 + Math.PI / 2 + (sides % 2 === 0 ? Math.PI / sides : 0);
                         return (
                             <mesh position={[r * Math.cos(theta), r * Math.sin(theta), 0]} key={i}>
                                 <sphereGeometry args={[0.2, 16, 16]} />
@@ -177,6 +184,76 @@ export const PolygonShape = ({ sides, length, color, opacity, showFaces, showEdg
                         )
                     })}
                 </group>
+            )}
+        </group>
+    );
+};
+
+export const CircleShape = ({ radius, opacity, showFaces, showEdges, showVertices }) => {
+    const r = radius;
+    return (
+        <group>
+            <mesh>
+                <circleGeometry args={[r, 64]} />
+                <meshStandardMaterial color="#f472b6" {...GenericMatProps(opacity)} visible={showFaces} />
+            </mesh>
+            {showEdges && (
+                <mesh position={[0, 0, 0.01]}>
+                    <ringGeometry args={[r - 0.05, r, 64]} />
+                    <meshBasicMaterial color="#06b6d4" transparent opacity={opacity / 100} />
+                </mesh>
+            )}
+            {showVertices && (
+                <mesh position={[0, 0, 0]}>
+                    <sphereGeometry args={[0.1, 16, 16]} />
+                    <meshStandardMaterial color="#f43f5e" />
+                </mesh>
+            )}
+        </group>
+    );
+};
+
+export const SectorShape = ({ radius, angle, opacity, showFaces, showEdges, showVertices }) => {
+    const r = radius;
+    const rad = (Math.max(10, Math.min(360, Number(angle) || 60)) * Math.PI) / 180;
+
+    // Rotate to make it face up like a pie slightly
+    const thetaStart = Math.PI / 2 - rad / 2;
+
+    return (
+        <group>
+            <mesh>
+                <circleGeometry args={[r, 64, thetaStart, rad]} />
+                <meshStandardMaterial color="#ef4444" {...GenericMatProps(opacity)} visible={showFaces} />
+            </mesh>
+            {showEdges && (
+                <mesh position={[0, 0, 0.01]}>
+                    <ringGeometry args={[r - 0.05, r, 64, 1, thetaStart, rad]} />
+                    <meshBasicMaterial color="#06b6d4" transparent opacity={opacity / 100} />
+                </mesh>
+            )}
+            {/* Outline bounds (the two straight edges) */}
+            {showEdges && (
+                <>
+                    <Line points={[[0, 0, 0.01], [r * Math.cos(thetaStart), r * Math.sin(thetaStart), 0.01]]} color="#06b6d4" lineWidth={2} transparent opacity={opacity / 100} />
+                    <Line points={[[0, 0, 0.01], [r * Math.cos(thetaStart + rad), r * Math.sin(thetaStart + rad), 0.01]]} color="#06b6d4" lineWidth={2} transparent opacity={opacity / 100} />
+                </>
+            )}
+            {showVertices && (
+                <>
+                    <mesh position={[0, 0, 0]}>
+                        <sphereGeometry args={[0.1, 16, 16]} />
+                        <meshStandardMaterial color="#f43f5e" />
+                    </mesh>
+                    <mesh position={[r * Math.cos(thetaStart), r * Math.sin(thetaStart), 0]}>
+                        <sphereGeometry args={[0.2, 16, 16]} />
+                        <meshStandardMaterial color="#f43f5e" />
+                    </mesh>
+                    <mesh position={[r * Math.cos(thetaStart + rad), r * Math.sin(thetaStart + rad), 0]}>
+                        <sphereGeometry args={[0.2, 16, 16]} />
+                        <meshStandardMaterial color="#f43f5e" />
+                    </mesh>
+                </>
             )}
         </group>
     );
@@ -199,31 +276,6 @@ export const QuadrilateralShape = ({ length, height, opacity, showFaces, showEdg
                         </mesh>
                     ))}
                 </>
-            )}
-        </group>
-    );
-};
-
-export const CircleShape = ({ length, opacity, showFaces, showEdges, showVertices }) => {
-    const r = length / 2;
-    return (
-        <group>
-            <mesh>
-                <circleGeometry args={[r, 64]} />
-                <meshStandardMaterial color="#f472b6" {...GenericMatProps(opacity)} visible={showFaces} />
-            </mesh>
-            {/* Edges representation for circle is just an arc border. Using RingGeometry can do that, or Path */}
-            {showEdges && (
-                <mesh position={[0, 0, 0.01]}>
-                    <ringGeometry args={[r - 0.05, r, 64]} />
-                    <meshBasicMaterial color="#06b6d4" transparent opacity={opacity / 100} />
-                </mesh>
-            )}
-            {showVertices && (
-                <mesh position={[0, 0, 0]}>
-                    <sphereGeometry args={[0.1, 16, 16]} />
-                    <meshStandardMaterial color="#f43f5e" />
-                </mesh>
             )}
         </group>
     );

@@ -2,8 +2,8 @@ import React from 'react';
 import { Cylinder, Edges } from '@react-three/drei';
 import * as THREE from 'three';
 
-export const CylinderShape = ({ length, height, unwrap, opacity, showFaces, showEdges, showVertices }) => {
-    const r = length / 2;
+export const CylinderShape = ({ radius, height, unwrap, opacity, showFaces, showEdges, showVertices }) => {
+    const r = radius;
     const h = height;
     const u = unwrap / 100;
 
