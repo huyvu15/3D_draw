@@ -54,37 +54,45 @@ export const PyramidShape = ({ length, width, height, unwrap, opacity, showFaces
     };
 
     // Calculate angles and slant heights
-    const slantHeightFront = Math.hypot(width / 2, height);
-    const slantHeightSide = Math.hypot(length / 2, height);
+    const slantHeightFront = Math.hypot(height, width / 2);
+    const slantHeightSide = Math.hypot(height, length / 2);
 
-    const angleFront = Math.acos((width / 2) / slantHeightFront);
-    const angleSide = Math.acos((length / 2) / slantHeightSide);
+    // Initial angles from the base when fully folded up
+    const initialAngleFront = Math.atan2(height, width / 2); // angle between base and slant face
+    const initialAngleSide = Math.atan2(height, length / 2);
 
-    // Interpolate rotations based on unwrap (0: folded up, 1: flat on ground)
-    const currentRotFront = angleFront * (1 - u);
-    const currentRotSide = angleSide * (1 - u);
+    // Target angle is 0 (flat on the base, meaning rotation angle -Math.PI / 2 relative to up)
+    // When u=0, rotation should be -(Math.PI / 2 - initialAngleFront)
+    // When u=1, rotation should be -Math.PI / 2
+
+    // Front and Back face rotation around X-axis. 
+    // They start tilted inwards and fold outwards to flat.
+    const foldAngleFront = initialAngleFront * (1 - u);
+
+    // Left and Right face rotation around Z-axis (which becomes X after rotate-y)
+    const foldAngleSide = initialAngleSide * (1 - u);
 
     return (
         <group position={[0, -height / 2, 0]}>
             <BasePlane w={length} d={width} />
 
             {/* Front Face (positive Z) */}
-            <group position={[0, 0, width / 2]} rotation={[-currentRotFront, 0, 0]}>
+            <group position={[0, 0, width / 2]} rotation={[-(Math.PI / 2 - foldAngleFront), 0, 0]}>
                 <TriangleFace base={length} slantHeight={slantHeightFront} color="#1e3a8a" />
             </group>
 
             {/* Back Face (negative Z) */}
-            <group position={[0, 0, -width / 2]} rotation={[currentRotFront, Math.PI, 0]}>
+            <group position={[0, 0, -width / 2]} rotation={[(Math.PI / 2 - foldAngleFront), Math.PI, 0]}>
                 <TriangleFace base={length} slantHeight={slantHeightFront} color="#1e3a8a" />
             </group>
 
             {/* Right Face (positive X) */}
-            <group position={[length / 2, 0, 0]} rotation={[0, 0, currentRotSide]} rotation-y={Math.PI / 2}>
+            <group position={[length / 2, 0, 0]} rotation={[0, 0, (Math.PI / 2 - foldAngleSide)]} rotation-y={Math.PI / 2}>
                 <TriangleFace base={width} slantHeight={slantHeightSide} color="#8b5cf6" />
             </group>
 
             {/* Left Face (negative X) */}
-            <group position={[-length / 2, 0, 0]} rotation={[0, 0, -currentRotSide]} rotation-y={-Math.PI / 2}>
+            <group position={[-length / 2, 0, 0]} rotation={[0, 0, -(Math.PI / 2 - foldAngleSide)]} rotation-y={-Math.PI / 2}>
                 <TriangleFace base={width} slantHeight={slantHeightSide} color="#8b5cf6" />
             </group>
 
